@@ -9,20 +9,19 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import com.app.EmployeeMgmt.entity.Employee;
-import com.app.EmployeeMgmt.repo.EmployeeRepository;
 import com.app.EmployeeMgmt.service.EmployeeService;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api/employees")
 public class EmployeeController {
 
     @Autowired
     private EmployeeService employeeService;
-    @Autowired
-    private EmployeeRepository employeeRepository;
-    // Create or Update Employee
+
+    // Create Employee
     @PostMapping
-    public ResponseEntity<Employee> createOrUpdateEmployee(@RequestBody Employee employee) {
+    public ResponseEntity<Employee> createEmployee(@RequestBody Employee employee) {
         Employee savedEmployee = employeeService.saveOrUpdateEmployee(employee);
         return new ResponseEntity<>(savedEmployee, HttpStatus.CREATED);
     }
@@ -48,32 +47,16 @@ public class EmployeeController {
         employeeService.deleteEmployeeById(empId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
-    
+
     // Update Employee
     @PutMapping("/{id}")
     public ResponseEntity<Employee> updateEmployee(@PathVariable int id, @RequestBody Employee employeeDetails) {
-        // Find the employee by ID
-        Optional<Employee> optionalEmployee = employeeRepository.findById(id);
+        Optional<Employee> updatedEmployee = employeeService.updateEmployee(id, employeeDetails);
         
-        if (optionalEmployee.isPresent()) {
-            // Get the existing employee from the database
-            Employee existingEmployee = optionalEmployee.get();
-
-            // Update the employee's details
-            existingEmployee.setEmpName(employeeDetails.getEmpName());
-            existingEmployee.setEmpEmail(employeeDetails.getEmpEmail());
-            existingEmployee.setEmpMobile(employeeDetails.getEmpMobile());
-            existingEmployee.setEmpSal(employeeDetails.getEmpSal());
-
-            // Save the updated employee back to the database
-            Employee updatedEmployee = employeeRepository.save(existingEmployee);
-
-            // Return the updated employee data
-            return ResponseEntity.ok(updatedEmployee);
+        if (updatedEmployee.isPresent()) {
+            return ResponseEntity.ok(updatedEmployee.get());
         } else {
-            // Return 404 if employee not found
             return ResponseEntity.notFound().build();
         }
     }
-
 }
